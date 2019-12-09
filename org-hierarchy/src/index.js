@@ -17,7 +17,7 @@ app.get('/', (request, response) => {
 //Utility access to allow insertion of users
 //app.get('/users', db.getAllUsers);
 //app.get('/users/:id', db.getUserById);
-//app.post('/users', db.createUser);
+app.post('/users', db.createUser);
 //app.put('/users/:id', db.updateUser);
 //app.delete('/users/:id', db.deleteUser);
 app.get('/user/descendants/:id', hierarchy.getAllDescendants);

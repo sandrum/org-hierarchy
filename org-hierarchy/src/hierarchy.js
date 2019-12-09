@@ -9,7 +9,7 @@ const {Person} = require('./classes/classes');
 let personnel = {};
 
 /**
- * Load all users from DB and add to hashtable
+ * Load all users from DB and add to dictonary
  */
 db.getAllUsersMain(function (results) {
     //for each row, add person object to hashtable
@@ -37,11 +37,15 @@ db.getAllUsersMain(function (results) {
 
 });
 
+/**
+ * Populate the list of subordinates for each person (if the subordinates exist).
+ * Uses "Parent id" found in subordinate .parent member variable.
+ */
 fillSubordinateList = () => {
     //for each hashtable entry, update childmap
     Object.keys(personnel).forEach(function (key) {
         let person = personnel[key];
-        if (person.parent !== 0) {
+        if (person.parent !== 0 && personnel[person.parent] !== undefined) {
             personnel[person.parent].addchild(person._id);
         }
     });
@@ -94,6 +98,12 @@ getAllDescendants = (request, response) => {
     response.status(200).json(chartSet)
 };
 
+/**
+ * Update the parents of a user to that of a proper upper level individual (if it exists).
+ * If the new parent id does no exist, or the same parent id is already set, no update is done.
+ * @param request
+ * @param response
+ */
 updateUserParent = (request, response) => {
     const id = parseInt(request.params.id);
     const newParentId = parseInt(request.params.parentId);
@@ -126,13 +136,23 @@ updateUserParent = (request, response) => {
     });
 };
 
+/**
+ * Used for testing. Getter for personnel dictionary object
+ * @param callback
+ */
 getpersonnel = (callback) => {
     callback(personnel);
 };
 
+/**
+ * Used for testing. Setter for personnel dictionary object.
+ * Incoming user data is refashioned to fit in person dictionary, including calculating of list height and setting of
+ * child/subordinates lists for each person.
+ * @param users
+ */
 setpersonnel = (users) => {
     personnel = {};
-    let rootNode;
+    let rootNode = new Person();
     users.forEach(function (record) {
         let personObject = new Person();
         personObject.id = record.id;
