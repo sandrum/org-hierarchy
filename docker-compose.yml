@@ -1,0 +1,18 @@
+version: "2"
+services:
+  practice_docker:
+    image: ivansanchezcom/org-hierarchy
+    ports:
+      - 80:3000
+    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; npm start'
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=127.0.0.1://heirarchy:g0r6on50la1s74$ty@db:5432/heirarchyapi
+      - PORT=3000
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=heirarchy
+      - POSTGRES_PASSWORD=g0r6on50la1s74$ty
+      - POSTGRES_DB=heirarchyapi
