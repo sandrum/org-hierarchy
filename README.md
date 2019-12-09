@@ -13,3 +13,12 @@ Further, a POST endpoint exists to add a user name/parent combination which will
 Persistence is via Postgres database.
 The project is meant to function within a docker container, 
 though it can be run on nodejs without a container (as long as the host machine has postgres installed)
+
+How to use:
+via command line: 
+  npm start
+
+via docker: 
+docker image build -t org-hierarchy:1.0 .
+docker container run --publish 8000:8080 --detach --name bb org-hierarchy:1.0
+
