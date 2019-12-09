@@ -31,7 +31,7 @@ db.getAllUsersMain(function (results) {
     });
     console.log('loaded ' + sz + ' personnel.');
 
-    fillSubordinateList();
+    fillSubordinateList(rootNode);
     //calc Height
     updateHeight(rootNode, 1);
 
@@ -41,9 +41,10 @@ db.getAllUsersMain(function (results) {
  * Populate the list of subordinates for each person (if the subordinates exist).
  * Uses "Parent id" found in subordinate .parent member variable.
  */
-fillSubordinateList = () => {
+fillSubordinateList = (rootnode) => {
     //for each hashtable entry, update childmap
     Object.keys(personnel).forEach(function (key) {
+        personnel[key].root = root.id;
         let person = personnel[key];
         if (person.parent !== 0 && personnel[person.parent] !== undefined) {
             personnel[person.parent].addchild(person._id);
@@ -163,7 +164,7 @@ setpersonnel = (users) => {
             rootNode = personObject;
         }
     });
-    fillSubordinateList();
+    fillSubordinateList(rootNode);
     updateHeight(rootNode, 1);
 };
 
