@@ -16,24 +16,26 @@ db.getAllUsersMain(function (results) {
     //keep track of root person
     let rootNode = new Person();
     var sz = 0;
-    results.rows.forEach(function (record) {
-        let personObject = new Person();
-        personObject.id = record.id;
-        personObject.name = record.name;
-        personObject.parent = record.parent;
-        personnel[record.id] = personObject;
-        sz += 1;
-        console.log('loaded ' + record.name + ' personnel.');
+    if(results.rows.length > 0) {
+        results.rows.forEach(function (record) {
+            let personObject = new Person();
+            personObject.id = record.id;
+            personObject.name = record.name;
+            personObject.parent = record.parent;
+            personnel[record.id] = personObject;
+            sz += 1;
+            console.log('loaded ' + record.name + ' personnel.');
 
-        if (record.parent === 0) {
-            rootNode = personObject;
-        }
-    });
-    console.log('loaded ' + sz + ' personnel.');
+            if (record.parent === 0) {
+                rootNode = personObject;
+            }
+        });
+        console.log('loaded ' + sz + ' personnel.');
 
-    fillSubordinateList(rootNode);
-    //calc Height
-    updateHeight(rootNode, 1);
+        fillSubordinateList(rootNode);
+        //calc Height
+        updateHeight(rootNode, 1);
+    }
 
 });
 
@@ -59,18 +61,20 @@ fillSubordinateList = (rootnode) => {
  */
 updateHeight = (rootNode, initHeight) => {
     let person = personnel[rootNode.id];
-    person.height = initHeight;
-    let q = [];
-    q[q.length] = person;
-    while (q.length > 0) {
-        let p = q[0];
-        q = q.filter(item => item !== p);
-        personnel[p.id].height = p.height;
-        p.childlist.forEach(function (child) {
-            let childperson = personnel[child];
-            childperson.height = p.height + 1;
-            q[q.length] = childperson;
-        });
+    if (person !== undefined) {
+        person.height = initHeight;
+        let q = [];
+        q[q.length] = person;
+        while (q.length > 0) {
+            let p = q[0];
+            q = q.filter(item => item !== p);
+            personnel[p.id].height = p.height;
+            p.childlist.forEach(function (child) {
+                let childperson = personnel[child];
+                childperson.height = p.height + 1;
+                q[q.length] = childperson;
+            });
+        }
     }
 };
 
@@ -106,8 +110,7 @@ getAllDescendants = (request, response) => {
  * @param response
  */
 updateUserParent = (request, response) => {
-    const id = parseInt(request.params.id);
-    const newParentId = parseInt(request.params.parentId);
+    const {id, newParentId} = request.body;
 
     let person = personnel[id];
     let newParent = personnel[newParentId];
@@ -123,7 +126,7 @@ updateUserParent = (request, response) => {
     let oldParent = person.parent;
 
     //update old parent child list
-    if (oldParent !== 0) {
+    if (oldParent !== 0 && personnel[oldParent] !== undefined) {
         personnel[oldParent].removeChild(id);
     }
     person.parent = newParentId;
