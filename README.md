@@ -95,13 +95,13 @@ and the response might appear as:
  POST /user/updateParent/  
 params: 
 id
-parentId  
+newParentId  
 ```
- where id indicates the id of the user to reparent and parentId is the new parent for the user.  
+ where id indicates the id of the user to reparent and newParentId is the NEW parent to be assigned to the user.  
  
  For example, assuming an entity exists in the hierarchy with the id of "6", and should be parented to user 1, the following would be the syntax
   ```     
- curl -X POST -i http://localhost:3000/user/updateParent/ --data 'id=6&parentId=1'
+ curl -X POST -i http://localhost:3000/user/updateParent/ --data 'id=6&newParentId=1'
   ```
 
 If the parent exists, it will be updated. If not, only the user id (if it exists) is updated with the new parent value.  .

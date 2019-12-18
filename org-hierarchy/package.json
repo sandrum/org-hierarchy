@@ -19,6 +19,7 @@
     "express": "^4.17.1",
     "node-mocks-http": "^1.8.0",
     "pg": "^6.4.2",
+    "pgtools": "^0.3.0",
     "request": "^2.88.0",
     "should": "^13.2.3",
     "supertest": "^4.0.2"

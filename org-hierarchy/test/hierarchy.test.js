@@ -69,26 +69,24 @@ describe("Hierarchy Functionality Test", function () {
 
         //before call, confirm
         hierarchy.getpersonnel(function(users) {
-            answers = users;
-            expect(answers[13].name).equals("Marie Dunsk");
-            expect(answers[13].parent).equals(8);
+            expect(users[13].name).equals("Marie Dunsk");
+            expect(users[13].parent).equals(8);
         });
 
         //call to update
-        req.params.id = 13;
-        req.params.parentId = 2;
+        req.body.id = 13;
+        req.body.newParentId = 2;
         hierarchy.updateUserParent(req, res);
 
         //after call, confirm outcome
         hierarchy.getpersonnel(function(users) {
-            answers = users;
-            expect(answers[13].name).equals("Marie Dunsk");
-            expect(answers[13].parent).equals(2);
+            expect(users[13].name).equals("Marie Dunsk");
+            expect(users[13].parent).equals(2);
         });
 
         //setup child nodes for Marie -- previous manager now reports to Marie
-        req.params.id = 8;
-        req.params.parentId = 13;
+        req.body.id = 8;
+        req.body.newParentId = 13;
         hierarchy.updateUserParent(req, res);
         hierarchy.getpersonnel(function(users) {
             answers = users;
@@ -112,11 +110,11 @@ describe("Hierarchy Functionality Test", function () {
         });
 
         //call to update
-        req.params.id = 13;
-        req.params.parentId = 8;
+        req.body.id = 13;
+        req.body.newParentId = 8;
         hierarchy.updateUserParent(req, res);
         var dataresponse = res._getJSONData();
-        expect(dataresponse).equal(expectedParentError);
+        expect(dataresponse).equals(expectedParentError);
     });
 
     it("Test updating node that to parent that does not exist", function () {
@@ -133,8 +131,8 @@ describe("Hierarchy Functionality Test", function () {
         });
 
         //call to update
-        req.params.id = 13;
-        req.params.parentId = 118;
+        req.body.id = 13;
+        req.body.newParentId = 118;
         hierarchy.updateUserParent(req, res);
         var dataresponse = res._getJSONData();
         expect(dataresponse).equal(expectedParentNonExist);
