@@ -5,25 +5,15 @@ services:
     #image: ivansanchezcom/org-hierarchy
     ports:
       - 3000:3000
-    command: bash -c 'while !</dev/tcp/postgres/5432; do sleep 1; done; npm start'
+    command: bash -c 'while !</dev/tcp/db/3306; do sleep 1; done; npm start'
     depends_on:
-      - postgres
+      - db
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/test_db
+      - DATABASE_URL=mysql://root:root@db/orghierarchy
       - PORT=3000
-      - PGHOST=postgres
-      - PGPASSWORD=postgres
-      - PGUSER=postgres
-      - PGDATABASE=test_db
-      - PGPORT=5432
-  postgres:
-    image: postgres
+  db:
+    image: mariadb:latest
     restart: always
-    ports:
-      - "5432:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=test_db
-    volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: orghierarchy

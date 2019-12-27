@@ -1,32 +1,35 @@
-const Pool = require('pg').Pool;
+const mariadb = require('mariadb/callback');
 let tableName = 'orgchart';
 console.log(process.env);
 
-var conString = process.env.DATABASE_URL;
-if (conString === undefined) {
-    conString =  `postgres://postgres:postgres@localhost/test_db`;
-}
-
 //const pool = new Pool({connectionString: conString});
-const pool = new Pool({
+/*const pool = new Pool({
     host: process.env.PGHOST,
     user: process.env.PGUSER,
     database: process.env.PGDATABASE,
     password: process.env.PGPASSWORD,
     port: Number(process.env.PGPORT),
+});  */
+const pool = mariadb.createConnection({
+    host: 'db',
+    user: 'root',
+    password: 'root',
+    database: 'orghierarchy'
 });
 
 const initDB = () => {
-    console.log("Trying to create table with " + conString  );
+    console.log("Trying to create table with " + pool  );
 
-    pool.query("CREATE TABLE IF NOT EXISTS orgchart(id INTEGER PRIMARY KEY, name varchar(80) NOT NULL, parent INTEGER)",
+    pool.query("CREATE TABLE IF NOT EXISTS orgchart(id INTEGER PRIMARY KEY NOT NULL AUTO_INCREMENT, name varchar(80) NOT NULL, parent INTEGER)",
         (error, results) => {
             if (error) {
                 console.log("Could not create table " + error);
             } else {
                 dbPrimer();
             }
-        })
+            console.log("Table created");
+        }
+    );
    
 };
 
@@ -36,42 +39,46 @@ const getAllUsers = (request, response) => {
         if (error) {
             throw error
         }
-        response.status(200).json(results.rows)
+        response.status(200).json(results)
     })
 };
 
 const getAllUsersMain = (callback) => {
-   console.log("Initializing the db");
 
     //simple check for table/db exist and initialize DB on fail.
-    pool.query(`SELECT * FROM ${tableName} ORDER BY id ASC`, (error, results) => {if (error) {
-        console.log("Initializing db");
-        initDB();
-    }});
-
     pool.query(`SELECT * FROM ${tableName} ORDER BY id ASC`, (error, results) => {
         if (error) {
-            throw error
+            console.log("Initializing db");
+            initDB();
+            pool.query(`SELECT * FROM ${tableName} ORDER BY id ASC`, (error, results) => {
+                if (error) {
+                    //probably a deeper issue than just the code at this point.
+                    throw error
+                }
+                console.log("Results captured. Ready.");
+                callback(results);
+            });
+        } else {
+            callback(results);
         }
-        callback(results);
-    })
+    });
+
 };
 
 const getUserById = (request, response) => {
     const id = parseInt(request.params.id);
-
-    pool.query(`SELECT * FROM ${tableName} WHERE id = $1`, [id], (error, results) => {
+    pool.query(`SELECT * FROM ${tableName} WHERE id = ${id}`, (error, results) => {
         if (error) {
             throw error
         }
-        response.status(200).json(results.rows)
+        response.status(200).json(results)
     })
 };
 
 const createUser = (request, response) => {
     const {name, parent} = request.body;
 
-    pool.query(`INSERT INTO ${tableName} (name, parent) VALUES ($1, $2)`, [name, parent], (error, results) => {
+    pool.query(`INSERT INTO ${tableName} (name, parent) VALUES (${name}, ${parent})`, (error, results) => {
         if (error) {
             throw error
         }
@@ -85,7 +92,7 @@ const updateUser = (request, response) => {
     const {name, parent} = request.body;
 
     pool.query(
-        `UPDATE ${tableName} SET name = $1, parent = $2 WHERE id = $3`,
+        `UPDATE ${tableName} SET name = "${name}", parent = ${parent} WHERE id = ${id}`,
         [name, parent, id],
         (error, results) => {
             if (error) {
@@ -99,8 +106,7 @@ const updateUser = (request, response) => {
 const updateParent = (id, parent, callback) => {
 
     pool.query(
-        `UPDATE ${tableName} SET parent = $1 WHERE id = $2`,
-        [parent, id],
+        `UPDATE ${tableName} SET parent = ${parent} WHERE id = ${id}`,
         (error, results) => {
             if (error) {
                 throw error
@@ -113,7 +119,7 @@ const updateParent = (id, parent, callback) => {
 const deleteUser = (request, response) => {
     const id = parseInt(request.params.id);
 
-    pool.query(`DELETE FROM ${tableName} WHERE id = $1`, [id], (error, results) => {
+    pool.query(`DELETE FROM ${tableName} WHERE id = ${id}`, (error, results) => {
         if (error) {
             throw error
         }
@@ -122,15 +128,18 @@ const deleteUser = (request, response) => {
 };
 
 const dbPrimer = () => {
-    console.log("PRIMING " );
-
-    var priming = [["Brayden Kennedy", 0], ["Charles Bryant", 1], ["Dara Redfern", 1], ["Adrian Grey", 2], ["Andrew Jaff", 2],
+    console.log("No data found. PRIMING... " );
+   
+    let priming = [["Brayden Kennedy", 0], ["Charles Bryant", 1], ["Dara Redfern", 1], ["Adrian Grey", 2], ["Andrew Jaff", 2],
         ["Christy Attix", 1], ["Corey Watson", 1], ["Jada Green", 3], ["Angela Ripley", 3], ["Ivan Skavan Skivan", 3],
         ["Robert Newton", 8], ["Richard Clarke", 8], ["Todd Marley", 8], ["Marie Dyunsk", 8]];
         priming.forEach(function(entry) {
-            pool.query(`INSERT INTO ${tableName} (name, parent) VALUES ($1, $2)`, [entry[0], entry[1]], (error, results) => {
+            pool.query(`INSERT INTO ${tableName} (name, parent) VALUES ("${entry[0]}", ${entry[1]})`,  (error, results) => {
                 if (error) {
+                    console.log(error);
                     throw error
+                }  else {
+                    console.log(results);
                 }
             })
         });

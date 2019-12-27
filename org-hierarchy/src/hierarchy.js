@@ -11,14 +11,15 @@ let personnel = {};
 /**
  * Load all users from DB and add to dictonary
  */
-dbSetup = () => {
+dbSetup = (callbackFunction) => {
     db.getAllUsersMain(function (results) {
         //for each row, add person object to hashtable
         //keep track of root person
         let rootNode = new Person();
-        var sz = 0;
-        if (results.rows.length > 0) {
-            results.rows.forEach(function (record) {
+        let sz = 0;
+        if(results === undefined) return;
+        if (results.length > 0) {
+            results.forEach(function (record) {
                 let personObject = new Person();
                 personObject.id = record.id;
                 personObject.name = record.name;
@@ -37,9 +38,9 @@ dbSetup = () => {
             //calc Height
             updateHeight(rootNode, 1);
         }
-
+        callbackFunction();
     });
-}
+};
 
 /**
  * Populate the list of subordinates for each person (if the subordinates exist).
@@ -94,7 +95,7 @@ getAllDescendants = (request, response) => {
     q[q.length] = person;
     while (q.length > 0) {
         let p = q[0];
-        console.log('found person with name ' + p.name + ' from list');
+        console.log('found person with id ' + p.id + ' from list');
         console.log('found subordinates with id ' + p.childlist + ' from list');
         q = q.filter(item => item !== p);
         p.childlist.forEach(function (child) {
