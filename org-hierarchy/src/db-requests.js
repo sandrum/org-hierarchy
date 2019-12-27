@@ -1,17 +1,11 @@
 const Pool = require('pg').Pool;
-
-var pgtools = require('pgtools');
-
 let tableName = 'orgchart';
-let dbname = 'test_db';
 console.log(process.env);
 
 var conString = process.env.DATABASE_URL;
 if (conString === undefined) {
     conString =  `postgres://postgres:postgres@localhost/test_db`;
 }
-
-
 
 //const pool = new Pool({connectionString: conString});
 const pool = new Pool({
