@@ -1,0 +1,29 @@
+version: "3.1"
+services:
+  app:
+    build: .
+    #image: ivansanchezcom/org-hierarchy
+    ports:
+      - 3000:3000
+    command: bash -c 'while !</dev/tcp/postgres/5432; do sleep 1; done; npm start'
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/test_db
+      - PORT=3000
+      - PGHOST=postgres
+      - PGPASSWORD=postgres
+      - PGUSER=postgres
+      - PGDATABASE=test_db
+      - PGPORT=5432
+  postgres:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=test_db
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data

@@ -1,7 +1,10 @@
 FROM node:7
-RUN mkdir /org-hierarchy
-ADD . /org-hierarchy
-WORKDIR /org-hierarchy
-RUN npm i
-EXPOSE 80
-CMD ["npm", "start"]
+WORKDIR /usr/src/app
+COPY ./package.json .
+COPY ./package-lock.json .
+
+RUN npm install
+COPY . .
+EXPOSE 3000
+
+#CMD [ "npm", "start" ]

@@ -25,5 +25,10 @@ app.post('/user/updateParent', hierarchy.updateUserParent);
 
 
 app.listen(port, () => {
-    console.log(`Service running on port ${port}.`);
+    console.log("Waiting for service to start.");
+    setTimeout(   function() {
+        hierarchy.dbSetup();
+        console.log(`Service running on port ${port}.`);
+    }, 5000);
+
 });

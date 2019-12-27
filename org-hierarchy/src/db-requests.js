@@ -1,46 +1,40 @@
 const Pool = require('pg').Pool;
+
 var pgtools = require('pgtools');
 
 let tableName = 'orgchart';
-let hostname = 'localhost';
-let pw = 'g0r6on50la1s74$ty'; //we should probably store these in a .pgp file.
-let port = 5432;
-let username = 'heirarchy';
-let dbname = 'heirarchyapi';
+let dbname = 'test_db';
+console.log(process.env);
 
-const config = {
-    user: username,
-    host: hostname,
-    password: pw,
-    port: port
-};
+var conString = process.env.DATABASE_URL;
+if (conString === undefined) {
+    conString =  `postgres://postgres:postgres@localhost/test_db`;
+}
+
+
+
+//const pool = new Pool({connectionString: conString});
+const pool = new Pool({
+    host: process.env.PGHOST,
+    user: process.env.PGUSER,
+    database: process.env.PGDATABASE,
+    password: process.env.PGPASSWORD,
+    port: Number(process.env.PGPORT),
+});
 
 const initDB = () => {
-    console.log("Cra gnitdb");
-    pgtools.createdb(config, dbname, function (err, res) {
-        if (err) {
-            console.log("Could not create db " + err);
-        }
-        pool.query(`CREATE TABLE IF NOT EXISTS orgchart(id INTEGER PRIMARY KEY, name varchar(80) NOT NULL, parent INTEGER)`,
-            (error, results) => {
+    console.log("Trying to create table with " + conString  );
+
+    pool.query("CREATE TABLE IF NOT EXISTS orgchart(id INTEGER PRIMARY KEY, name varchar(80) NOT NULL, parent INTEGER)",
+        (error, results) => {
             if (error) {
                 console.log("Could not create table " + error);
             } else {
                 dbPrimer();
             }
         })
-
-    });
+   
 };
-
-
-const pool = new Pool({
-    user: username,
-    host: hostname,
-    database: dbname,
-    password: pw,
-    port: port,
-});
 
 const getAllUsers = (request, response) => {
 
@@ -53,9 +47,14 @@ const getAllUsers = (request, response) => {
 };
 
 const getAllUsersMain = (callback) => {
+   console.log("Initializing the db");
+
     //simple check for table/db exist and initialize DB on fail.
-    pool.query(`SELECT * FROM ${tableName} ORDER BY id ASC`, (error, results) => {if (error) {initDB();}});
-    
+    pool.query(`SELECT * FROM ${tableName} ORDER BY id ASC`, (error, results) => {if (error) {
+        console.log("Initializing db");
+        initDB();
+    }});
+
     pool.query(`SELECT * FROM ${tableName} ORDER BY id ASC`, (error, results) => {
         if (error) {
             throw error
@@ -129,6 +128,8 @@ const deleteUser = (request, response) => {
 };
 
 const dbPrimer = () => {
+    console.log("PRIMING " );
+
     var priming = [["Brayden Kennedy", 0], ["Charles Bryant", 1], ["Dara Redfern", 1], ["Adrian Grey", 2], ["Andrew Jaff", 2],
         ["Christy Attix", 1], ["Corey Watson", 1], ["Jada Green", 3], ["Angela Ripley", 3], ["Ivan Skavan Skivan", 3],
         ["Robert Newton", 8], ["Richard Clarke", 8], ["Todd Marley", 8], ["Marie Dyunsk", 8]];
@@ -142,22 +143,6 @@ const dbPrimer = () => {
 
 };
 
-/**
- * concat array
- * @param tpl
- * @param data
- * @returns {Inserter}
- * @constructor
- */
-function Inserter(tpl, data) {
-    if (!(this instanceof Inserter)) {
-        return new Inserter(tpl, data);
-    }
-    this._rawDBType = true;
-    this.formatDBType = function () {
-        return data.map(item => '(' + pgp.as.format(tpl, item) + ')').join(',');
-    };
-}
 
 module.exports = {
     getAllUsers,

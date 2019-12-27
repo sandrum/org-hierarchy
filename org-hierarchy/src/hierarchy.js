@@ -11,39 +11,41 @@ let personnel = {};
 /**
  * Load all users from DB and add to dictonary
  */
-db.getAllUsersMain(function (results) {
-    //for each row, add person object to hashtable
-    //keep track of root person
-    let rootNode = new Person();
-    var sz = 0;
-    if(results.rows.length > 0) {
-        results.rows.forEach(function (record) {
-            let personObject = new Person();
-            personObject.id = record.id;
-            personObject.name = record.name;
-            personObject.parent = record.parent;
-            personnel[record.id] = personObject;
-            sz += 1;
-            console.log('loaded ' + record.name + ' personnel.');
+dbSetup = () => {
+    db.getAllUsersMain(function (results) {
+        //for each row, add person object to hashtable
+        //keep track of root person
+        let rootNode = new Person();
+        var sz = 0;
+        if (results.rows.length > 0) {
+            results.rows.forEach(function (record) {
+                let personObject = new Person();
+                personObject.id = record.id;
+                personObject.name = record.name;
+                personObject.parent = record.parent;
+                personnel[record.id] = personObject;
+                sz += 1;
+                console.log('loaded ' + record.name + ' personnel.');
 
-            if (record.parent === 0) {
-                rootNode = personObject;
-            }
-        });
-        console.log('loaded ' + sz + ' personnel.');
+                if (record.parent === 0) {
+                    rootNode = personObject;
+                }
+            });
+            console.log('loaded ' + sz + ' personnel.');
 
-        fillSubordinateList(rootNode);
-        //calc Height
-        updateHeight(rootNode, 1);
-    }
+            fillSubordinateList(rootNode);
+            //calc Height
+            updateHeight(rootNode, 1);
+        }
 
-});
+    });
+}
 
 /**
  * Populate the list of subordinates for each person (if the subordinates exist).
  * Uses "Parent id" found in subordinate .parent member variable.
  */
-fillSubordinateList = (rootnode) => {
+fillSubordinateList = () => {
     //for each hashtable entry, update childmap
     Object.keys(personnel).forEach(function (key) {
         personnel[key].root = root.id;
@@ -174,6 +176,8 @@ setpersonnel = (users) => {
 module.exports = {
     getAllDescendants,
     updateUserParent,
+    //priming
+    dbSetup,
     //for testing
     getpersonnel,
     setpersonnel
